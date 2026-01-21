@@ -1,5 +1,0 @@
-python-telegram-bot
-apscheduler
-flask
-pytz
-prayer-times-calculator
