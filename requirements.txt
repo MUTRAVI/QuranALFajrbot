@@ -1,6 +1,0 @@
-python-telegram-bot
-pytz
-prayer-times-calculator
-flask
-geopy
-timezonefinder
