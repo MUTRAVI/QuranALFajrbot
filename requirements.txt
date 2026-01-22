@@ -1,4 +1,0 @@
-python-telegram-bot[job-queue]
-prayer-times-calculator
-Flask
-pytz
