@@ -1,3 +1,13 @@
+import subprocess
+import sys
+
+subprocess.check_call([sys.executable, "-m", "pip", "install", "python-telegram-bot[job-queue]", "APScheduler", "pytz"])
+
+import os
+import pytz
+from datetime import time
+from telegram.ext import Application
+
 import os
 import pytz
 from datetime import time
