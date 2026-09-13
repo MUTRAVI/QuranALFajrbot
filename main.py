@@ -1,51 +1,48 @@
 import subprocess
 import sys
 
-# 1. تثبيت المكتبات وتحديث البيئة أولاً
-subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "python-telegram-bot[job-queue]", "APScheduler", "pytz"])
+# تثبيت المكتبات المضمونة
+subprocess.check_call([sys.executable, "-m", "pip", "install", "python-telegram-bot", "apscheduler", "pytz"])
 
-# 2. استدعاء المكتبات بعد ضمان التثبيت الكامل
-import os
+import asyncio
 import pytz
 from datetime import time
-import telegram.ext
-from telegram.ext import Application
+from telegram import Bot
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 TOKEN = "7674563071:AAGgszBWDJ72Yudm8_dTsgA"
 CHANNEL_ID = "@QuranAlfajrOfficial"
 TIMEZONE = pytz.timezone('Asia/Riyadh')
 
-async def send_sabah(context):
-    await context.bot.send_photo(chat_id=CHANNEL_ID, photo=open('images/sabah.jpg', 'rb'))
+bot = Bot(token=TOKEN)
 
-async def send_massa(context):
-    await context.bot.send_photo(chat_id=CHANNEL_ID, photo=open('images/massa.jpg', 'rb'))
+async def send_sabah():
+    await bot.send_photo(chat_id=CHANNEL_ID, photo=open('images/sabah.jpg', 'rb'))
 
-async def send_sleep(context):
-    await context.bot.send_photo(chat_id=CHANNEL_ID, photo=open('images/sleep_azkar.jpg', 'rb'))
+async def send_massa():
+    await bot.send_photo(chat_id=CHANNEL_ID, photo=open('images/massa.jpg', 'rb'))
 
-async def send_friday(context):
-    await context.bot.send_photo(chat_id=CHANNEL_ID, photo=open('images/friday_sunnah.jpg', 'rb'))
+async def send_sleep():
+    await bot.send_photo(chat_id=CHANNEL_ID, photo=open('images/sleep_azkar.jpg', 'rb'))
 
-def main():
-    # بناء التطبيق
-    application = Application.builder().token(TOKEN).build()
-    
-    # التحقق من وجود JobQueue
-    if application.job_queue is None:
-        print("خطأ: لم يتم التعرف على JobQueue. جاري إعادة التشغيل...")
-        sys.exit(1)
+async def send_friday():
+    await bot.send_photo(chat_id=CHANNEL_ID, photo=open('images/friday_sunnah.jpg', 'rb'))
 
-    job_queue = application.job_queue
+async def main():
+    scheduler = AsyncIOScheduler(timezone=TIMEZONE)
 
-    # جدولة المهام
-    job_queue.run_daily(send_sabah, time=time(hour=5, minute=30, tzinfo=TIMEZONE))
-    job_queue.run_daily(send_massa, time=time(hour=16, minute=30, tzinfo=TIMEZONE))
-    job_queue.run_daily(send_sleep, time=time(hour=22, minute=30, tzinfo=TIMEZONE))
-    job_queue.run_daily(send_friday, time=time(hour=9, minute=0, day_of_week=4, tzinfo=TIMEZONE))
+    # جدولة المواعيد بتوقيت الرياض
+    scheduler.add_job(send_sabah, 'cron', hour=5, minute=30)
+    scheduler.add_job(send_massa, 'cron', hour=16, minute=30)
+    scheduler.add_job(send_sleep, 'cron', hour=22, minute=30)
+    scheduler.add_job(send_friday, 'cron', day_of_week='fri', hour=9, minute=0)
 
-    print("البوت فعال وشغال بنجاح...")
-    application.run_polling()
+    scheduler.start()
+    print("تم تشغيل البوت والجدولة بنجاح تام!")
+
+    # إبقاء البوت شغال بدون توقف
+    while True:
+        await asyncio.sleep(3600)
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
